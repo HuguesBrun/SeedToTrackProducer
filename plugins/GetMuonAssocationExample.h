@@ -33,6 +33,16 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
+#include "DataFormats/Common/interface/RefToPtr.h"
+
+#include "DataFormats/Candidate/interface/CandMatchMap.h"
+#include "DataFormats/Candidate/interface/CandidateFwd.h"
+
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/Candidate/interface/Candidate.h"
+
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/RecoCandidate/interface/TrackAssociation.h"
@@ -54,7 +64,7 @@
 #include "DataFormats/TrackingRecHit/interface/TrackingRecHit.h"
 
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
-
+typedef std::vector<edm::InputTag> vtag;
 //
 // class declaration
 //
@@ -82,6 +92,9 @@ class GetMuonAssocationExample : public edm::EDAnalyzer {
     edm::InputTag standAloneAssociatorTag_;
     edm::InputTag trackingParticlesTag_;
     edm::InputTag L2associatorTag_;
+    edm::InputTag associationToSTaTag_;
     std::string theMuonRecHitBuilderName_;
+    std::string theSTAMuonLabel_;
+    vtag muonProducers_;
 };
 

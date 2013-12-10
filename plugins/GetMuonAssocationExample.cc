@@ -15,9 +15,13 @@ GetMuonAssocationExample::GetMuonAssocationExample(const edm::ParameterSet& iCon
 
 {
     standAloneAssociatorTag_ = iConfig.getParameter<edm::InputTag>("standAloneAssociator");
+    associationToSTaTag_ = iConfig.getParameter<edm::InputTag>("associationToSTA");
     trackingParticlesTag_ =  iConfig.getParameter<edm::InputTag>("trackingParticlesCollection");
     L2associatorTag_ = iConfig.getParameter<edm::InputTag>("L2associator");
     theMuonRecHitBuilderName_ = iConfig.getParameter<std::string>("MuonRecHitBuilder");
+    theSTAMuonLabel_ = iConfig.getUntrackedParameter<std::string>("StandAloneTrackCollectionLabel");
+    muonProducers_        = iConfig.getParameter<vtag>("recoMuonsCollection");
+
 }
 
 
@@ -52,9 +56,48 @@ GetMuonAssocationExample::analyze(const edm::Event& iEvent, const edm::EventSetu
     if (TPCollectionH.isValid()) tPC   = *(TPCollectionH.product());
     else cout << "not found tracking particles collection" << endl;
     
+    edm::Handle <reco::GenParticleCollection> genParticles;
+    iEvent.getByLabel("genParticles", genParticles );
 
+    edm::Handle< edm::ValueMap< float > > tpAssoQuality;
+    iEvent.getByLabel(associationToSTaTag_, tpAssoQuality );
+    const edm::ValueMap<float> *theMap = tpAssoQuality.product();
+    
+   // edm::Handle<reco::TrackCollection> staTracks;
+   // iEvent.getByLabel(theSTAMuonLabel_, staTracks);
+   // const reco::TrackCollection *tracks = staTracks.product();
+    
+    edm::Handle < std::vector <reco::Muon> > recoMuons;
+    edm::InputTag muonProducer = muonProducers_.at(0);
+    iEvent.getByLabel(muonProducer, recoMuons);
+    
+    int nbMuons = recoMuons->size();
+    //cout << "there are " << nbMuons << " muons in the event" << endl;
+    
+    //loop on the reco muons in the event
+    for (int k = 0 ; k < nbMuons ; k++){
+        
+        const reco::Muon* muon = &((*recoMuons)[k]);
+        cout << "pt =" << muon->pt() << endl;
+         reco::MuonRef muonRef(recoMuons, k);
+        float tryQuality = (*theMap)[muonRef];
+        cout << "tryQuality=" << tryQuality << endl;
+    }
+
+  /*  cout << "nb of tracks=" << tracks->size() << endl;
+    int refToTrack = 0;
+    for (reco::TrackCollection::const_iterator staTrack = staTracks->begin(); staTrack != staTracks->end(); ++staTrack, ++refToTrack){
+        cout << "pt=" << staTrack->pt() << endl;
+        reco::TrackRef trackref(staTracks, refToTrack);
+        float tryQuality = theMap[trackref];
+        cout << "tryQuality=" << tryQuality << endl;
+       
+    }*/
+    
+
+    
     //sim to RECO tracks associator
-    edm::Handle<reco::SimToRecoCollection> simRecoHandle;
+  /*  edm::Handle<reco::SimToRecoCollection> simRecoHandle;
     iEvent.getByLabel(standAloneAssociatorTag_,simRecoHandle);
     
     reco::SimToRecoCollection simRecColl;
@@ -101,13 +144,21 @@ GetMuonAssocationExample::analyze(const edm::Event& iEvent, const edm::EventSetu
         cout << "no valid sim RecHit product found ! " << endl;
         return;
     }
+*/
+    
+    // loop on GEN Particles
+    int nbOfGen = genParticles->size();
+    for (int j = 0 ; j < nbOfGen ; j++){
+        const reco::GenParticle & theCand = (*genParticles)[j];
+        cout << "gen particle : Pt=" << theCand.pt() << " eta=" << theCand.eta() << " phi=" << theCand.phi() << endl;
 
+    }
     // loop on tracking particle
     for (TrackingParticleCollection::size_type i=0; i<tPC.size(); i++) {
         TrackingParticleRef trpart(TPCollectionH, i);
         if (trpart->pt()<1) continue;
         cout << "tracking particle : Pt=" << trpart->pt() << " eta=" << trpart->eta() << " phi=" << trpart->phi() << endl;
-        bool isTrackFound = false;
+       /* bool isTrackFound = false;
         float matchQuality, matchPurity;
         edm::RefToBase<reco::Track> theSTAMuon = findArecoCandidate(trpart, simRecColl, recSimColl, &isTrackFound, &matchQuality, &matchPurity);
         if (isTrackFound) {
@@ -124,9 +175,10 @@ GetMuonAssocationExample::analyze(const edm::Event& iEvent, const edm::EventSetu
             const TrackingRecHit *seghit = &(*(theSeed.recHits().first));
             TransientTrackingRecHit::ConstRecHitPointer ttrh(theMuonRecHitBuilder->build(seghit));
             cout <<  " eta=" << ttrh->globalPosition().eta() << " phi=" << ttrh->globalPosition().phi() << endl;
-        }
+        }*/
     }
-    edm::RefToBase<reco::Track> test;
+    
+    
 }
 
 
